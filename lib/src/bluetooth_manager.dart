@@ -23,7 +23,7 @@ class BluetoothManager {
     _channel.setMethodCallHandler((MethodCall call) {
       _methodStreamController.add(call);
       return;
-    });
+    } as Future<dynamic> Function(MethodCall)?);
   }
 
   static BluetoothManager _instance = BluetoothManager._();
@@ -36,7 +36,7 @@ class BluetoothManager {
   // Future<bool> get isOn async =>
   //     await _channel.invokeMethod('isOn').then<bool>((d) => d);
 
-  Future<bool> get isConnected async =>
+  Future<bool?> get isConnected async =>
       await _channel.invokeMethod('isConnected');
 
   BehaviorSubject<bool> _isScanning = BehaviorSubject.seeded(false);
@@ -52,13 +52,13 @@ class BluetoothManager {
   Stream<int> get state async* {
     yield await _channel.invokeMethod('state').then((s) => s);
 
-    yield* _stateChannel.receiveBroadcastStream().map((s) => s);
+    yield* _stateChannel.receiveBroadcastStream().map(((s) => s) as int Function(dynamic));
   }
 
   /// Starts a scan for Bluetooth Low Energy devices
   /// Timeout closes the stream after a specified [Duration]
   Stream<BluetoothDevice> scan({
-    Duration timeout,
+    Duration? timeout,
   }) async* {
     if (_isScanning.value == true) {
       throw Exception('Another scan is already in progress.');
@@ -111,7 +111,7 @@ class BluetoothManager {
   }
 
   Future startScan({
-    Duration timeout,
+    Duration? timeout,
   }) async {
     await scan(timeout: timeout).drain();
     return _scanResults.value;
